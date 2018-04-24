@@ -1,5 +1,7 @@
 <?php
 
+namespace aswinda;
+
 class CloudMessaging 
 {
 	const URL = 'https://fcm.googleapis.com/fcm/send';
@@ -19,39 +21,28 @@ class CloudMessaging
         $this->apiKey = $apiKey;
         return $this;
     }
-	/*
-		Set the devices to send to
-		@param $deviceIds array of device tokens to send to
-	*/
-	function setDevices($deviceIds){
+	
+	function setDevices($deviceIds)
+	{
 		if(is_array($deviceIds)){
 			$this->devices = $deviceIds;
 		} else {
 			$this->devices = array($deviceIds);
 		}
 	}
-	
-	public function send(Message $message)
-    {
-        return $this->guzzleClient->post(
-            $this->getApiUrl(),
-            [
-                'headers' => [
-                    'Authorization' => sprintf('key=%s', $this->apiKey),
-                    'Content-Type' => 'application/json'
-                ],
-                'body' => json_encode($message)
-            ]
-        );
-    }
 
-	function send($message, $data = false){
-		
-		if(!is_array($this->devices) || count($this->devices) == 0){
+	function send($message, $devices = [], $data = false)
+	{
+		if(!empty($devices))
+			$this->devices = $devices;
+
+		if(!is_array($this->devices) || count($this->devices) == 0)
+		{
 			throw new CloudMessagingArgumentException("No devices set");
 		}
 		
-		if(strlen($this->serverApiKey) < 8){
+		if(empty($this->apiKey))
+		{
 			throw new CloudMessagingArgumentException("Server API Key not set");
 		}
 		
@@ -60,21 +51,23 @@ class CloudMessaging
 			'data'              => array( "message" => $message ),
 		);
 		
-		if(is_array($data)){
+		if(is_array($data))
+		{
 			foreach ($data as $key => $value) {
 				$fields['data'][$key] = $value;
 			}
 		}
+
 		$headers = array( 
 			'Authorization: key=' . $this->apiKey,
 			'Content-Type: application/json'
 		);
-		
+
 		// Open connection
 		$ch = curl_init();
 		
 		// Set the url, number of POST vars, POST data
-		curl_setopt( $ch, CURLOPT_URL, $this->url );
+		curl_setopt( $ch, CURLOPT_URL, self::URL );
 		
 		curl_setopt( $ch, CURLOPT_POST, true );
 		curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers);
@@ -94,13 +87,17 @@ class CloudMessaging
 		
 		return $result;
 	}
-	
 }
-class GCMPushMessageArgumentException extends Exception {
-    public function __construct($message, $code = 0, Exception $previous = null) {
+
+class CloudMessagingArgumentException extends \Exception 
+{
+    public function __construct($message, $code = 0, Exception $previous = null) 
+    {
         parent::__construct($message, $code, $previous);
     }
-    public function __toString() {
+
+    public function __toString() 
+    {
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
     }
 }
