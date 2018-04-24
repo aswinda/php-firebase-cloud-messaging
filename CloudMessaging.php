@@ -44,15 +44,15 @@ class CloudMessaging
             ]
         );
     }
-    
+
 	function send($message, $data = false){
 		
 		if(!is_array($this->devices) || count($this->devices) == 0){
-			throw new GCMPushMessageArgumentException("No devices set");
+			throw new CloudMessagingArgumentException("No devices set");
 		}
 		
 		if(strlen($this->serverApiKey) < 8){
-			throw new GCMPushMessageArgumentException("Server API Key not set");
+			throw new CloudMessagingArgumentException("Server API Key not set");
 		}
 		
 		$fields = array(
@@ -66,9 +66,10 @@ class CloudMessaging
 			}
 		}
 		$headers = array( 
-			'Authorization: key=' . $this->serverApiKey,
+			'Authorization: key=' . $this->apiKey,
 			'Content-Type: application/json'
 		);
+		
 		// Open connection
 		$ch = curl_init();
 		
