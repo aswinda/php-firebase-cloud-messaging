@@ -31,7 +31,7 @@ class CloudMessaging
 		}
 	}
 
-	function send($message, $devices = [], $data = false)
+	function send($notificationData, $devices = [], $data = false)
 	{
 		if(!empty($devices))
 			$this->devices = $devices;
@@ -46,10 +46,20 @@ class CloudMessaging
 			throw new CloudMessagingArgumentException("Server API Key not set");
 		}
 		
-		$fields = array(
-			'registration_ids'  => $this->devices,
-			'data'              => array( "message" => $message ),
-		);
+		if(count($devices) > 1)
+		{
+			$fields = array(
+				'registration_ids'  => $this->devices,
+				'data'              => $notificationData,
+			);
+		}
+		else
+		{
+			$fields = array(
+				'to'  				=> $this->devices,
+				'data'              => $notificationData,
+			);
+		}
 		
 		if(is_array($data))
 		{
